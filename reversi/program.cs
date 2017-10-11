@@ -8,8 +8,9 @@ namespace Reversi
 	{
 		public static void Main()
 		{
-			Mandelbrot m = new Mandelbrot();
-			Application.Run(m);
+            Reversi r = new Reversi();
+            r.DebugReversi();
+			Application.Run(r);
 		}
 	}
 }
