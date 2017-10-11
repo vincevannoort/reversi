@@ -36,6 +36,7 @@ namespace Reversi
             this.addInitialStones();
             this.Paint += drawBoard;
             this.Paint += drawStones;
+            this.Paint += drawGameState;
             this.MouseClick += addStone;
         }
 
@@ -79,6 +80,13 @@ namespace Reversi
                     }
 				}
 			}
+        }
+
+        void drawGameState(Object obj, PaintEventArgs pea)
+        {
+            string player = "";
+            player = (status == 1) ? "blue" : "red";
+            pea.Graphics.DrawString(String.Format("Current player is {0}", player), this.Font, Brushes.Black, offset, offset/2);
         }
 
         void addInitialStones()
