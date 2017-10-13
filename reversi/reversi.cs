@@ -95,22 +95,27 @@ namespace Reversi
                     {
                         pea.Graphics.DrawEllipse(Pens.Black, i * stoneSize + offset + stoneMargin, j * stoneSize + offset + stoneMargin, stoneSize - stoneMargin * 2, stoneSize - stoneMargin * 2);
                     }
+
+					// debug stone
+					else if (board[i, j] == -2)
+					{
+                        pea.Graphics.FillEllipse(Brushes.Yellow, i * stoneSize + offset + stoneMargin / 2, j * stoneSize + offset + stoneMargin / 2, stoneSize - stoneMargin, stoneSize - stoneMargin);
+					}
 				}
 			}
         }
 
         void calculatePossibleMoves(Object obj, PaintEventArgs pea)
         {
+            int oppositePlayer = getOppositePlayer();
+
 			for (int i = 0; i < this.width; i++)
 			{
 				for (int j = 0; j < this.height; j++)
 				{
-                    int oppositePlayer = getOppositePlayer();
-
                     // check each stone of the current player
                     if (board[i,j] == status)
                     {
-
                         for (int k = -1; k <= 1; k++)
                         {
                             for (int l = -1; l <= 1; l++)
@@ -169,11 +174,40 @@ namespace Reversi
                 if (board[stoneX, stoneY] == -1)
                 {
 					board[stoneX, stoneY] = status;
+                    changeEnclosedStones(stoneX, stoneY);
                     cleanPossibleMoves();
 					checkAndChangeStatus();
 					this.Invalidate();   
                 }
             }
+        }
+
+        void changeEnclosedStones(int stoneX, int stoneY)
+        {
+            int oppositePlayer = getOppositePlayer();
+
+			for (int i = -1; i <= 1; i++)
+			{
+				for (int j = -1; j <= 1; j++)
+				{
+                    int count = 1;
+                    while(board[stoneX + (i * count), stoneY + (j * count)] == oppositePlayer)
+                    {
+                        count++;
+                    }
+
+                    // check if enclosed with own stone
+                    if (board[stoneX + (i * count), stoneY + (j * count)] == status)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Found enclosed stone");
+                        while(count >= 1)
+                        {
+                            board[stoneX + (i * count), stoneY + (j * count)] = status;
+                            count--;
+                        }
+                    }
+				}
+			}
         }
 
         void cleanPossibleMoves()
