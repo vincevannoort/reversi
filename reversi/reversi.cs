@@ -11,6 +11,14 @@ namespace Reversi
         int stoneSize = 50;
         int stoneMargin = 10;
         int offset = 100;
+
+        /*
+         * status 1 = player blue
+         * status 2 = player red
+         * status 3 = blue won
+         * status 4 = red won
+         * status 5 = tie
+         */
         int status = 1;
 
         public Reversi()
@@ -35,6 +43,7 @@ namespace Reversi
             this.BackColor = Color.White;
             this.addInitialStones();
             this.Paint += drawBoard;
+            this.Paint += calculatePossibleMoves;
             this.Paint += drawStones;
             this.Paint += drawGameState;
             this.MouseClick += addStone;
@@ -58,7 +67,7 @@ namespace Reversi
 			{
 				for (int j = 0; j < this.height; j++)
 				{
-                    pea.Graphics.DrawRectangle(Pens.Black, i*stoneSize + offset, j*stoneSize + offset, stoneSize, stoneSize);
+                    pea.Graphics.DrawRectangle(Pens.Gray, i*stoneSize + offset, j*stoneSize + offset, stoneSize, stoneSize);
 				}
 			}
         }
@@ -69,14 +78,54 @@ namespace Reversi
 			{
 				for (int j = 0; j < this.height; j++)
 				{
+                    // blue stones
                     if (board[i,j] == 1)
                     {
                         pea.Graphics.FillEllipse(Brushes.Blue, i * stoneSize + offset + stoneMargin / 2, j * stoneSize + offset + stoneMargin / 2, stoneSize - stoneMargin, stoneSize - stoneMargin);
                     }
 
+                    // red stones
                     else if (board[i,j] == 2)
                     {
                         pea.Graphics.FillEllipse(Brushes.Red, i * stoneSize + offset + stoneMargin / 2, j * stoneSize + offset + stoneMargin /2, stoneSize - stoneMargin, stoneSize - stoneMargin);
+                    }
+
+                    // possible moves
+                    else if (board[i,j] == -1)
+                    {
+                        pea.Graphics.DrawEllipse(Pens.Black, i * stoneSize + offset + stoneMargin, j * stoneSize + offset + stoneMargin, stoneSize - stoneMargin * 2, stoneSize - stoneMargin * 2);
+                    }
+				}
+			}
+        }
+
+        void calculatePossibleMoves(Object obj, PaintEventArgs pea)
+        {
+			for (int i = 0; i < this.width; i++)
+			{
+				for (int j = 0; j < this.height; j++)
+				{
+                    int oppositePlayer = getOppositePlayer();
+
+                    // check each stone of the current player
+                    if (board[i,j] == status)
+                    {
+
+                        for (int k = -1; k <= 1; k++)
+                        {
+                            for (int l = -1; l <= 1; l++)
+                            {
+                                // check if there are stones of the opposite player around the stone
+                                if(board[i + k, j + l] == oppositePlayer)
+                                {
+                                    // check if the next stone is empty
+                                    if (board[i + (k * 2), j + (l * 2)] == 0)
+                                    {
+                                        board[i + (k * 2), j + (l * 2)] = -1;
+                                    }
+                                }
+                            }
+                        }
                     }
 				}
 			}
@@ -116,13 +165,39 @@ namespace Reversi
                 int stoneX = x / stoneSize;
                 int stoneY = y / stoneSize;
 
-                // check if the stone is already set
-                if (board[stoneX, stoneY] == 0)
+                // check if the move is possible
+                if (board[stoneX, stoneY] == -1)
                 {
 					board[stoneX, stoneY] = status;
+                    cleanPossibleMoves();
 					checkAndChangeStatus();
 					this.Invalidate();   
                 }
+            }
+        }
+
+        void cleanPossibleMoves()
+        {
+			for (int i = 0; i < this.width; i++)
+			{
+				for (int j = 0; j < this.height; j++)
+				{
+                    if (board[i, j] == -1)
+                    {
+                        board[i, j] = 0;
+                    }
+				}
+			}
+        }
+
+        int getOppositePlayer()
+        {
+            if (status == 1)
+            {
+                return 2;
+            } else
+            {
+                return 1;
             }
         }
 
@@ -135,7 +210,6 @@ namespace Reversi
                 status = 2;
             else if (status == 2)
                 status = 1;
-
         }
     }
 }
