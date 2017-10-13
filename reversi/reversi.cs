@@ -120,15 +120,21 @@ namespace Reversi
                         {
                             for (int l = -1; l <= 1; l++)
                             {
-                                // check if there are stones of the opposite player around the stone
-                                if(board[i + k, j + l] == oppositePlayer)
-                                {
-                                    // check if the next stone is empty
-                                    if (board[i + (k * 2), j + (l * 2)] == 0)
-                                    {
-                                        board[i + (k * 2), j + (l * 2)] = -1;
-                                    }
-                                }
+                                try {
+									// check if there are stones of the opposite player around the stone
+									if (board[i + k, j + l] == oppositePlayer)
+									{
+										// check if the next stone is empty
+										if (board[i + (k * 2), j + (l * 2)] == 0)
+										{
+											board[i + (k * 2), j + (l * 2)] = -1;
+										}
+									}
+								}
+								catch (IndexOutOfRangeException e)
+								{
+									System.Diagnostics.Debug.WriteLine("Index out of board array.");
+								}
                             }
                         }
                     }
@@ -188,23 +194,27 @@ namespace Reversi
 
 			for (int i = -1; i <= 1; i++)
 			{
-				for (int j = -1; j <= 1; j++)
-				{
-                    int count = 1;
-                    while(board[stoneX + (i * count), stoneY + (j * count)] == oppositePlayer)
+                for (int j = -1; j <= 1; j++)
+                {
+                    try
                     {
-                        count++;
-                    }
-
-                    // check if enclosed with own stone
-                    if (board[stoneX + (i * count), stoneY + (j * count)] == status)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Found enclosed stone");
-                        while(count >= 1)
+                        int count = 1;
+                        while (board[stoneX + (i * count), stoneY + (j * count)] == oppositePlayer)
                         {
-                            board[stoneX + (i * count), stoneY + (j * count)] = status;
-                            count--;
+                            count++;
                         }
+
+                        // check if enclosed with own stone
+                        if (board[stoneX + (i * count), stoneY + (j * count)] == status)
+                        {
+                            while (count >= 1)
+                            {
+                                board[stoneX + (i * count), stoneY + (j * count)] = status;
+                                count--;
+                            }
+                        }
+                    } catch (IndexOutOfRangeException e) {
+                        System.Diagnostics.Debug.WriteLine("Index out of board array.");
                     }
 				}
 			}
