@@ -146,7 +146,17 @@ namespace Reversi
         {
             string player = "";
             player = (status == 1) ? "blue" : "red";
-            pea.Graphics.DrawString(String.Format("Current player is {0}", player), this.Font, Brushes.Black, offset, offset/2);
+            Brush b = (status == 1) ? Brushes.Blue : Brushes.Red;
+
+            // Current player
+            pea.Graphics.DrawString(String.Format("Current player is:         {0}", player), this.Font, Brushes.Black, offset, offset/2);
+            pea.Graphics.FillEllipse(b, offset + 88, offset / 2 + 2, 10, 10);
+
+            // Player counts
+            pea.Graphics.FillEllipse(Brushes.Blue, offset + 280, offset / 2 + 2 - 10, 10, 10);
+            pea.Graphics.FillEllipse(Brushes.Red, offset + 280, offset / 2 + 2 + 10, 10, 10);
+            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(1)), this.Font, Brushes.Black, offset + 300, offset / 2 - 10);
+            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(2)), this.Font, Brushes.Black, offset + 300, offset / 2 + 10);
         }
 
         void addInitialStones()
@@ -232,6 +242,22 @@ namespace Reversi
                     }
 				}
 			}
+        }
+
+        int getStoneCount(int player)
+        {
+            int count = 0;
+			for (int i = 0; i < this.width; i++)
+			{
+				for (int j = 0; j < this.height; j++)
+				{
+                    if (board[i, j] == player)
+					{
+                        count++;
+					}
+				}
+			}
+            return count;
         }
 
         int getOppositePlayer()
