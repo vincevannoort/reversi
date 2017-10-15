@@ -121,15 +121,21 @@ namespace Reversi
                             for (int l = -1; l <= 1; l++)
                             {
                                 try {
-									// check if there are stones of the opposite player around the stone
-									if (board[i + k, j + l] == oppositePlayer)
-									{
-										// check if the next stone is empty
-										if (board[i + (k * 2), j + (l * 2)] == 0)
-										{
-											board[i + (k * 2), j + (l * 2)] = -1;
-										}
-									}
+                                    // check if there are stones of the opposite player around the stone
+                                    if (board[i + k, j + l] == oppositePlayer)
+                                    {
+                                        int count = 1;
+                                        while (board[i + (k * count), j + (l * count)] == oppositePlayer)
+                                        {
+                                            count++;
+                                        }
+
+                                        // check if the next stone is empty
+                                        if (board[i + (k * count), j + (l * count)] == 0)
+                                        {
+                                            board[i + (k * count), j + (l * count)] = -1;
+                                        }
+                                    }
 								}
 								catch (IndexOutOfRangeException e)
 								{
@@ -153,10 +159,10 @@ namespace Reversi
             pea.Graphics.FillEllipse(b, offset + 88, offset / 2 + 2, 10, 10);
 
             // Player counts
-            pea.Graphics.FillEllipse(Brushes.Blue, offset + 280, offset / 2 + 2 - 10, 10, 10);
-            pea.Graphics.FillEllipse(Brushes.Red, offset + 280, offset / 2 + 2 + 10, 10, 10);
-            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(1)), this.Font, Brushes.Black, offset + 300, offset / 2 - 10);
-            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(2)), this.Font, Brushes.Black, offset + 300, offset / 2 + 10);
+            pea.Graphics.FillEllipse(Brushes.Blue, offset + 170, offset / 2 + 2 - 10, 10, 10);
+            pea.Graphics.FillEllipse(Brushes.Red, offset + 170, offset / 2 + 2 + 10, 10, 10);
+            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(1)), this.Font, Brushes.Black, offset + 190, offset / 2 - 10);
+            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(2)), this.Font, Brushes.Black, offset + 190, offset / 2 + 10);
         }
 
         void addInitialStones()
