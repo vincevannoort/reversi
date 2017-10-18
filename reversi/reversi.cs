@@ -194,7 +194,6 @@ namespace Reversi
             {
                 changePlayer();
                 this.Invalidate();
-                System.Diagnostics.Debug.WriteLine("INVALIDATED");
             }
 
             // check if game ended
@@ -342,6 +341,16 @@ namespace Reversi
 
         void resetGame(Object obj, EventArgs ea)
         {
+			for (int i = 0; i < this.width; i++)
+			{
+				for (int j = 0; j < this.height; j++)
+				{
+					board[i, j] = 0;
+				}
+			}
+            this.addInitialStones();
+            this.status = 1;
+            this.playersPassed = 0;
             this.Invalidate();
         }
 

@@ -8,7 +8,7 @@ namespace Reversi
 	{
 		public static void Main()
 		{
-            Reversi r = new Reversi(4,4);
+            Reversi r = new Reversi();
 			Application.Run(r);
 		}
 	}
