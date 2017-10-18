@@ -11,6 +11,7 @@ namespace Reversi
         int stoneSize = 50;
         int stoneMargin = 10;
         int offset = 100;
+        int possibleMoves = 0;
 
         /*
          * status 1 = player blue
@@ -21,12 +22,16 @@ namespace Reversi
          */
         int status = 1;
 
+        bool help = true;
+        int playersPassed = 0;
+
         public Reversi()
         {
             board = new int[6, 6];
             this.width = 6;
             this.height = 6;
             this.InitialiseEventHandlers();
+            this.InitialiseMenuItems();
         }
 
 		public Reversi(int width, int height)
@@ -51,6 +56,11 @@ namespace Reversi
 
         public void DebugReversi()
         {
+            System.Diagnostics.Debug.WriteLine("------------");
+            System.Diagnostics.Debug.WriteLine("Possible moves: " + this.possibleMoves);
+            System.Diagnostics.Debug.WriteLine("Players passed: " + this.playersPassed);
+            System.Diagnostics.Debug.WriteLine("Currentplayer: " + this.status);
+
             for (int i = 0; i < this.width; i++)
             {
                 for (int j = 0; j < this.height; j++)
@@ -59,6 +69,8 @@ namespace Reversi
                 }
                 System.Diagnostics.Debug.Write('\n');
             }
+            System.Diagnostics.Debug.WriteLine("------------");
+            System.Diagnostics.Debug.Write('\n');
         }
 
         void drawBoard(Object obj, PaintEventArgs pea)
@@ -91,7 +103,7 @@ namespace Reversi
                     }
 
                     // possible moves
-                    else if (board[i,j] == -1)
+                    else if (board[i,j] == -1 && help)
                     {
                         pea.Graphics.DrawEllipse(Pens.Black, i * stoneSize + offset + stoneMargin, j * stoneSize + offset + stoneMargin, stoneSize - stoneMargin * 2, stoneSize - stoneMargin * 2);
                     }
@@ -107,7 +119,9 @@ namespace Reversi
 
         void calculatePossibleMoves(Object obj, PaintEventArgs pea)
         {
+            this.cleanPossibleMoves();
             int oppositePlayer = getOppositePlayer();
+            int possibleMovesCount = 0;
 
 			for (int i = 0; i < this.width; i++)
 			{
@@ -134,18 +148,28 @@ namespace Reversi
                                         if (board[i + (k * count), j + (l * count)] == 0)
                                         {
                                             board[i + (k * count), j + (l * count)] = -1;
+                                            possibleMovesCount++;
                                         }
                                     }
 								}
-								catch (IndexOutOfRangeException e)
-								{
-									System.Diagnostics.Debug.WriteLine("Index out of board array.");
-								}
+								catch (IndexOutOfRangeException e) {}
                             }
                         }
                     }
 				}
 			}
+
+			// check if there are no moves available
+			if (!(possibleMoves > 0))
+			{
+				playersPassed++;
+			}
+			else
+			{
+				playersPassed = 0;
+			}
+
+            this.possibleMoves = possibleMovesCount;
         }
 
         void drawGameState(Object obj, PaintEventArgs pea)
@@ -159,10 +183,41 @@ namespace Reversi
             pea.Graphics.FillEllipse(b, offset + 88, offset / 2 + 2, 10, 10);
 
             // Player counts
+            int blueStoneCount = getStoneCount(1);
+            int redStoneCount = getStoneCount(2);
             pea.Graphics.FillEllipse(Brushes.Blue, offset + 170, offset / 2 + 2 - 10, 10, 10);
             pea.Graphics.FillEllipse(Brushes.Red, offset + 170, offset / 2 + 2 + 10, 10, 10);
-            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(1)), this.Font, Brushes.Black, offset + 190, offset / 2 - 10);
-            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", getStoneCount(2)), this.Font, Brushes.Black, offset + 190, offset / 2 + 10);
+            pea.Graphics.DrawString(String.Format("Blue player: {0} stones", blueStoneCount), this.Font, Brushes.Black, offset + 190, offset / 2 - 10);
+            pea.Graphics.DrawString(String.Format("Red player: {0} stones", redStoneCount), this.Font, Brushes.Black, offset + 190, offset / 2 + 10);
+
+            if (!(possibleMoves > 0) && playersPassed < 2)
+            {
+                changePlayer();
+                this.Invalidate();
+                System.Diagnostics.Debug.WriteLine("INVALIDATED");
+            }
+
+            // check if game ended
+            if (!(possibleMoves > 0) && playersPassed == 2)
+            {
+                Brush ba = new SolidBrush(Color.FromArgb(235, 255, 255, 255));
+                pea.Graphics.FillRectangle(ba, 0, 0, width * stoneSize + offset * 2, height * stoneSize + offset * 2);
+                bool remise = (blueStoneCount == redStoneCount);
+
+                if (!remise)
+                {
+                    string wonPlayer = "";
+                    wonPlayer = (blueStoneCount > redStoneCount) ? "Blue" : "Red";
+                    Brush wonColor = (blueStoneCount > redStoneCount) ? Brushes.Blue : Brushes.Red;
+
+                    pea.Graphics.FillEllipse(wonColor, (width * stoneSize + offset * 2) / 2 - 20, (height * stoneSize + offset * 2) / 2 - 60, 40, 40);
+                    pea.Graphics.DrawString(String.Format("{0} player won", wonPlayer), new Font("Tahoma", 24), Brushes.Black, (width * stoneSize + offset * 2) / 2 - 115, (height * stoneSize + offset * 2) / 2);
+                }
+                else 
+                {
+                    pea.Graphics.DrawString("Remise!", new Font("Tahoma", 24), Brushes.Black, (width * stoneSize + offset * 2) / 2 - 55, (height * stoneSize + offset * 2) / 2 - 40);
+                }
+            }
         }
 
         void addInitialStones()
@@ -197,8 +252,7 @@ namespace Reversi
                 {
 					board[stoneX, stoneY] = status;
                     changeEnclosedStones(stoneX, stoneY);
-                    cleanPossibleMoves();
-					checkAndChangeStatus();
+					changePlayer();
 					this.Invalidate();   
                 }
             }
@@ -229,9 +283,7 @@ namespace Reversi
                                 count--;
                             }
                         }
-                    } catch (IndexOutOfRangeException e) {
-                        System.Diagnostics.Debug.WriteLine("Index out of board array.");
-                    }
+                    } catch (IndexOutOfRangeException e) {}
 				}
 			}
         }
@@ -277,15 +329,36 @@ namespace Reversi
             }
         }
 
-        void checkAndChangeStatus()
+        void changePlayer()
         {
-            // TODO: couple of checks (win or remise)
+            status = getOppositePlayer();
+        }
 
-            // Switch active player
-            if (status == 1)
-                status = 2;
-            else if (status == 2)
-                status = 1;
+        void toggleHelp(Object obj, EventArgs ea)
+        {
+            this.help = !this.help;
+            this.Invalidate();
+        }
+
+        void resetGame(Object obj, EventArgs ea)
+        {
+            this.Invalidate();
+        }
+
+        void InitialiseMenuItems()
+        {
+			MainMenu mainMenu = new MainMenu();
+
+			MenuItem menuNieuw = new MenuItem("Nieuw spel");
+            menuNieuw.Click += this.resetGame;
+
+            MenuItem menuHulp = new MenuItem("Schakel hulp in/uit");
+            menuHulp.Click += this.toggleHelp;
+
+			mainMenu.MenuItems.Add(menuNieuw);
+            mainMenu.MenuItems.Add(menuHulp);
+
+            this.Menu = mainMenu;
         }
     }
 }
