@@ -31,13 +31,14 @@ namespace Reversi
             this.width = 6;
             this.height = 6;
             this.InitialiseEventHandlers();
-            this.InitialiseMenuItems();
         }
 
 		public Reversi(int width, int height)
 		{
-            if (width < 3) this.width = 3; else this.width = width;
-            if (height < 3) this.height = 3; else this.height = height;
+            if (width < 3) { width = 3; }
+            if (height < 3) { height = 3; }
+            this.width = width;
+            this.height = height;
             board = new int[width, height];
             this.InitialiseEventHandlers();
 		}
@@ -75,6 +76,7 @@ namespace Reversi
 
         void drawBoard(Object obj, PaintEventArgs pea)
         {
+            this.InitialiseMenuItems();
 			for (int i = 0; i < this.width; i++)
 			{
 				for (int j = 0; j < this.height; j++)
